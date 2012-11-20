@@ -10,7 +10,7 @@ module CBF
         {
           'name' => doc.root.attr('name'),
           'description' => (doc % 'description').text,
-          'assemblies' => (doc / 'assemblies/assembly').map { |a| parse_assembly(a)},
+          'resources' => (doc / 'assemblies/assembly').map { |a| parse_assembly(a)},
         }
       end
 
@@ -19,6 +19,7 @@ module CBF
       def self.parse_assembly(assembly)
         {
           'name' => assembly.attr('name'),
+          'type' => :instance,
           'hardware_profile' => StringParameter.new(assembly.attr('hwp')),
           'image' => StringParameter.new((assembly % 'image').attr('id')),
           'services' => (assembly / 'services/service').map { |s| parse_service(s) },

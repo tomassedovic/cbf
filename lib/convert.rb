@@ -21,8 +21,8 @@ module Aeolus
       end
     end
 
-    def self.parse(format, input_data)
-      get_converter(format).parse(input_data)
+    def self.parse(format, input_data, options={})
+      get_converter(format).parse(input_data, options)
     end
 
     def self.generate(format, template)

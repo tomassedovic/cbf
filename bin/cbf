@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'cbf'
+
+puts CBF.generate(:heat, '')

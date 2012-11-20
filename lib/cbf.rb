@@ -1,4 +1,3 @@
-$: << File.expand_path(File.dirname(__FILE__))
 require 'converters/aeolus_v0'
 require 'converters/heat'
 

@@ -10,8 +10,10 @@ module CBF
   class InvalidFormat < StandardError; end
 
   class StringParameter
-    def initialize(*attrs)
+    def initialize(default_value)
+      @default_value = default_value
     end
+    attr_reader :default_value
   end
 
   FORMAT_CONVERTER_MAP = {

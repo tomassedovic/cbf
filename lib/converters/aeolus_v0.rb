@@ -22,6 +22,7 @@ module CBF
           'type' => :instance,
           'hardware_profile' => StringParameter.new(assembly.attr('hwp')),
           'image' => StringParameter.new((assembly % 'image').attr('id')),
+          'keyname' => StringParameter.new(''),
           'services' => (assembly / 'services/service').map { |s| parse_service(s) },
           'returns' => ['TODO'],
         }

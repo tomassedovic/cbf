@@ -28,20 +28,21 @@ module CBF
             end
           end
         end
-        params.map { |p| generate_parameter(*p) }
+        params.map { |p| generate_parameter_declaration(*p) }
       end
 
-      def self.generate_parameter(resource_name, param_name, param)
-        definition = {
-          'Default' => param.default_value
-        }
+      def self.generate_parameter_declaration(resource_name, param_name, param)
+        definition = {}
+
+        unless param.default_value.empty?
+          definition['Default'] = param.default_value
+        end
+
         case param
         when StringParameter
           definition['Type'] = 'String'
         end
-        pname = param_name.split('_').map(&:capitalize).join('')
-        name = "#{resource_name}_#{pname}"
-        [name, definition]
+        [resource_param_name(resource_name, param_name), definition]
       end
 
       def self.generate_resource(resource)
@@ -50,35 +51,28 @@ module CBF
           'Type' => RESOURE_TYPE_MAP[resource['type']],
           'Metadata' => { "AWS::CloudFormation::Init" => {} },
           'Properties' => {
-            'ImageId' => image_reference(name, resource['image']),
-            'InstanceType' => hwp_reference(name, resource['hardware_profile']),
-            'KeyName' => { "Ref" =>  "#{name}_KeyName" },
+            'ImageId' => reference_link(resource, 'image'),
+            'InstanceType' => reference_link(resource, 'hardware_profile'),
+            'KeyName' => reference_link(resource, 'keyname'),
             'UserData' => '',
           },
         }
         [name, resource_body]
       end
 
-      def self.image_reference(resource_name, image)
-        case image
+      def self.reference_link(resource, type)
+        value = resource[type]
+        name = resource['name']
+        case value
         when String
-          image
+          value
         when StringParameter
-          { 'Ref' => "#{resource_name}_Image" }
-        else
-          raise 'Unknown Image reference type'
+          { 'Ref' => resource_param_name(name, type) }
         end
       end
 
-      def self.hwp_reference(resource_name, hardware_profile)
-        case hardware_profile
-        when String
-          hardware_profile
-        when StringParameter
-          { 'Ref' => "#{resource_name}_HardwareProfile" }
-        else
-          raise 'Unknown HardwareProfile reference type'
-        end
+      def self.resource_param_name(name, type)
+        "#{name}_#{type}"
       end
 
       RESOURE_TYPE_MAP = {

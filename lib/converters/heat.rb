@@ -6,10 +6,10 @@ module CBF
     class Heat
       def self.generate(template)
         parameters = self.generate_params(template)
-        resources = template['resources'].map { |r| generate_resource(r)}
+        resources = template[:resources].map { |r| generate_resource(r)}
         JSON.pretty_generate({
           'AWSTemplateFormatVersion' => '2010-09-09',
-          'Description' => template['description'],
+          'Description' => template[:description],
           'Parameters' => Hash[*parameters.flatten],
           'Resources' => Hash[*resources.flatten],
           'Outputs' => {},
@@ -20,11 +20,11 @@ module CBF
 
       def self.generate_params(template)
         params = []
-        template['resources'].each do |resource|
+        template[:resources].each do |resource|
           resource.each do |key, value|
             case value
             when StringParameter
-              params << [resource['name'], key, value]
+              params << [resource[:name], key, value]
             end
           end
         end
@@ -48,12 +48,12 @@ module CBF
       def self.generate_resource(resource)
         name = resource['name']
         resource_body = {
-          'Type' => RESOURE_TYPE_MAP[resource['type']],
+          'Type' => RESOURE_TYPE_MAP[resource[:type]],
           'Metadata' => { "AWS::CloudFormation::Init" => {} },
           'Properties' => {
-            'ImageId' => reference_link(resource, 'image'),
-            'InstanceType' => reference_link(resource, 'hardware_profile'),
-            'KeyName' => reference_link(resource, 'keyname'),
+            'ImageId' => reference_link(resource, :image),
+            'InstanceType' => reference_link(resource, :hardware_profile),
+            'KeyName' => reference_link(resource, :keyname),
             'UserData' => '',
           },
         }
@@ -62,7 +62,7 @@ module CBF
 
       def self.reference_link(resource, type)
         value = resource[type]
-        name = resource['name']
+        name = resource[:name]
         case value
         when String
           value

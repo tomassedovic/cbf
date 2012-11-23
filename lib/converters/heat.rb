@@ -46,7 +46,7 @@ module CBF
       end
 
       def self.generate_resource(resource)
-        name = resource['name']
+        name = resource[:name]
         resource_body = {
           'Type' => RESOURE_TYPE_MAP[resource[:type]],
           'Metadata' => { "AWS::CloudFormation::Init" => {} },

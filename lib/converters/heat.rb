@@ -34,9 +34,7 @@ module CBF
       def self.generate_parameter_declaration(resource_name, param_name, param)
         definition = {}
 
-        unless param.default_value.empty?
-          definition['Default'] = param.default_value
-        end
+        definition['Default'] = param.default_value if param.default_value
 
         case param
         when StringParameter

@@ -10,10 +10,23 @@ module CBF
   class InvalidFormat < StandardError; end
 
   class StringParameter
-    def initialize(default_value)
+    def initialize(name, default_value)
       @default_value = default_value
     end
-    attr_reader :default_value
+
+    attr_reader :name, :default_value
+  end
+
+  class PasswordParameter < StringParameter; end
+
+  class ReferenceParameter
+    def initialize(name, resource, parameter)
+      @name = name
+      @resource = resource
+      @parameter = parameter
+    end
+
+    attr_reader :name, :resource, :parameter
   end
 
   class FileURL

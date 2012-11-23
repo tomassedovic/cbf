@@ -4,6 +4,9 @@ module CBF
   module Converters
 
     class AeolusV0
+
+      class InvalidParameterType < StandardError; end
+
       def self.parse(input_data, options)
         # TODO: validate the XML
         doc = Nokogiri::XML(input_data)
@@ -20,9 +23,9 @@ module CBF
         {
           :name => assembly.attr('name'),
           :type => :instance,
-          :hardware_profile => StringParameter.new(assembly.attr('hwp')),
-          :image => StringParameter.new((assembly % 'image').attr('id')),
-          :keyname => StringParameter.new(''),
+          :hardware_profile => StringParameter.new('hardware_profile', assembly.attr('hwp')),
+          :image => StringParameter.new('image', (assembly % 'image').attr('id')),
+          :keyname => StringParameter.new('keyname', nil),
           :services => (assembly / 'services/service').map { |s| parse_service(s) },
           :returns => ['TODO'],
         }
@@ -51,16 +54,27 @@ module CBF
       end
 
       def self.parse_parameter(parameter)
-        # TODO: check for references
-        result = {
-          :name => parameter.attr('name'),
-        }
-        value = (parameter % 'value')
-        if value
-          result[:type] = value.attr('type')
-          result[:value] = value.content
+        name = parameter.attr('name')
+        reference = parameter % 'reference'
+        if reference
+          ReferenceParameter.new(name, reference.attr('assembly'),
+            reference.attr('parameter'))
+        else
+          value_element = parameter % 'value'
+          if value_element
+            type = value_element.attr('type') || 'scalar'
+            case type
+            when 'scalar'
+              StringParameter.new(name, value_element.text)
+            when 'password'
+              PasswordParameter.new(name, value_element.text)
+            else
+              raise InvalidParameterType, type
+            end
+          else
+            StringParameter.new(name, nil)
+          end
         end
-        result
       end
 
     end

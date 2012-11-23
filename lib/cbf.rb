@@ -16,6 +16,24 @@ module CBF
     attr_reader :default_value
   end
 
+  class FileURL
+    def initialize(url)
+      @url = url
+    end
+
+    attr_reader :url
+  end
+
+  class FileContents
+    def initialize(name, contents)
+      @name = name
+      @contents = contents
+    end
+
+    attr_reader :name, :contents
+  end
+
+
   FORMAT_CONVERTER_MAP = {
       :heat => Converters::Heat,
       :cloud_formation => Converters::Heat,

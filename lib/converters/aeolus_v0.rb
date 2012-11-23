@@ -29,11 +29,25 @@ module CBF
       end
 
       def self.parse_service(service)
-        {
+        result = {
           :name => service.attr('name'),
-          :executable_url => (service % 'executable').attr('url'),
+          :files => (service / 'files/file').map { |f| parse_file(f) },
           :parameters => (service / 'parameters/parameter').map { |p| parse_parameter(p) },
         }
+        executable = (service % 'executable')
+        result[:executable] = parse_file(executable) if executable
+
+        result
+      end
+
+      def self.parse_file(file)
+        url = file.attr('url')
+        if url
+          FileURL.new(url)
+        else
+          contents = file % 'contents'
+          FileContents.new(contents.attr('name'), contents.text)
+        end
       end
 
       def self.parse_parameter(parameter)

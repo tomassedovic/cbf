@@ -27,7 +27,7 @@ module CBF
           :image => StringParameter.new('image', (assembly % 'image').attr('id')),
           :keyname => StringParameter.new('keyname', nil),
           :services => (assembly / 'services/service').map { |s| parse_service(s) },
-          :returns => ['TODO'],
+          :returns => (assembly / 'returns/return').map { |r| parse_return(r) } ,
         }
       end
 
@@ -77,7 +77,10 @@ module CBF
         end
       end
 
-    end
+      def self.parse_return(return_element)
+        return_element.attr('name')
+      end
 
+    end
   end
 end

@@ -1,7 +1,7 @@
 require 'nokogiri'
 
 module CBF
-  module Converters
+  module Parsers
 
     class AeolusV0
 

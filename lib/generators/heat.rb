@@ -1,7 +1,7 @@
 require 'json'
 
 module CBF
-  module Converters
+  module Generators
 
     class Heat
       def self.generate(template)

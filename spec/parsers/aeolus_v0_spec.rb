@@ -3,7 +3,7 @@ require 'cbf'
 
 describe 'Aeolus v.0 parser' do
   it "must advertise the Aeolus v.0 format" do
-    CBF.formats.must_include :aeolus_v0
+    CBF.parsers.must_include :aeolus_v0
   end
 
   it "must successfully parse the wordpress deployable" do

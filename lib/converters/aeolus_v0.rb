@@ -8,13 +8,19 @@ module CBF
       class InvalidParameterType < StandardError; end
 
       def self.parse(input_data, options)
-        # TODO: validate the XML
-        doc = Nokogiri::XML(input_data)
+        validate!(input_data)
+        doc = Nokogiri::XML(input_data) do |config|
+          config.strict.nonet
+        end
         {
           :name => doc.root.attr('name'),
           :description => (doc % 'description').text,
           :resources => (doc / 'assemblies/assembly').map { |a| parse_assembly(a)},
         }
+      end
+
+      def self.validate!(input_data)
+        # TODO: add the validation here, raise exceptions on invalid input
       end
 
       private

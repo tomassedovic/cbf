@@ -1,0 +1,75 @@
+<deployable version="1.0" name="Drupal Multi-Instance Deployable">
+  <description>This is an example of a multi deployment that deploys drupal across an apache and mysql instance</description>
+  <assemblies>
+    <!-- The Drupal Assembly represents the instance that will be running apache
+         (httpd) with drupal7.-->
+    <assembly name="drupal" hwp="large">
+      <image id="DRUPAL_IMAGE_ID"/> <!-- replace your own image ID here -->
+      <services>
+        <service name="http">
+          <executable url="https://raw.github.com/aeolusproject/audrey/master/examples/drupal/drupal-http.py"/>
+          <files>
+            <file url="https://raw.github.com/aeolusproject/audrey/master/examples/drupal/settings.php"/>
+          </files>
+          <parameters>
+            <parameter name="db_name" type="scalar">
+                <value>drupal</value>
+            </parameter>
+            <parameter name="db_user" type="scalar">
+                <value>drupal</value>
+            </parameter>
+            <parameter name="db_pw" type="password">
+                <value>password</value>
+            </parameter>
+            <parameter name="db_ip" type="scalar">
+              <reference assembly="mysql" parameter="ipaddress"/>
+            </parameter>
+            <parameter name="db_hostname" type="scalar">
+              <reference assembly="mysql" parameter="hostname"/>
+            </parameter>
+            <parameter name="dbup" type="scalar">
+              <reference assembly="mysql" parameter="dbup"/>
+            </parameter>
+          </parameters>
+        </service>
+      </services>
+      <returns>
+        <return name="hostname"/>
+        <return name="ipaddress"/>
+      </returns>
+    </assembly>
+    <assembly name="mysql" hwp="large">
+      <image id="MYSQL_IMAGE_ID"/>
+      <services>
+        <service name="mysql">
+          <executable url="https://raw.github.com/aeolusproject/audrey/master/examples/drupal/drupal-mysql.py"/>
+          <files>
+            <file url="https://raw.github.com/aeolusproject/audrey/master/examples/drupal/dbup.rb"/>
+          </files>
+          <parameters>
+            <parameter name="db_name" type="scalar">
+                <value>drupal</value>
+            </parameter>
+            <parameter name="db_user" type="scalar">
+                <value>drupal</value>
+            </parameter>
+            <parameter name="db_pw" type="password">
+                <value>password</value>
+            </parameter>
+            <parameter name="apache_ip" type="scalar">
+              <reference assembly="drupal" parameter="ipaddress"/>
+            </parameter>
+            <parameter name="apache_hostname" type="scalar">
+              <reference assembly="drupal" parameter="hostname"/>
+            </parameter>
+          </parameters>
+        </service>
+      </services>
+      <returns>
+        <return name="hostname"/>
+        <return name="ipaddress"/>
+        <return name="dbup"/>
+      </returns>
+    </assembly>
+  </assemblies>
+</deployable>

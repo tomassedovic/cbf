@@ -38,24 +38,26 @@ module CBF
       end
 
       def self.parse_service(service)
+        service_name = service.attr('name')
         result = {
-          :name => service.attr('name'),
-          :files => (service / 'files/file').map { |f| parse_file(f) },
+          :name => service_name,
+          :files => (service / 'files/file').map { |f| parse_file(f, service_name) },
           :parameters => (service / 'parameters/parameter').map { |p| parse_parameter(p) },
         }
         executable = (service % 'executable')
-        result[:executable] = parse_file(executable) if executable
+        result[:executable] = parse_file(executable, service_name) if executable
 
         result
       end
 
-      def self.parse_file(file)
+      def self.parse_file(file, service_name)
         url = file.attr('url')
+        location = File.join('/var/audrey/tooling/', service_name)
         if url
-          FileURL.new(url)
+          FileURL.new(url, location)
         else
           contents = file % 'contents'
-          FileContents.new(contents.attr('name'), contents.text)
+          FileContents.new(contents.attr('name'), contents.text, location)
         end
       end
 

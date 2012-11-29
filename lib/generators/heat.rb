@@ -65,14 +65,20 @@ module CBF
           },
         }
 
-        files = resource[:services].map { |s| s[:files]}.flatten.map do |f|
-          generate_file(f)
-        end
+
+        files = resource[:services].map { |s| s[:files] }.flatten
+        executables = resource[:services].map { |s| s[:executable] }.compact
+        generated_files = (files + executables).map { |f| generate_file(f) }
 
         unless files.empty?
           cfn_init = resource_body['Metadata']['AWS::CloudFormation::Init']
           cfn_init['config'] ||= {}
-          cfn_init['config']['files'] = Hash[*files.flatten]
+          cfn_init['config']['files'] = Hash[*generated_files.flatten]
+        end
+
+        unless executables.empty?
+          user_data = ['!#/bin/bash'] + executables.map { |f| File.join(f.location, f.name) }
+          resource_body['UserData'] = user_data.join("\n")
         end
 
         [name, resource_body]
@@ -93,7 +99,7 @@ module CBF
           body['encoding'] = 'plain'
         end
 
-        [file.name, body]
+        [File.join(file.location, file.name), body]
       end
 
       def self.reference_link(resource, type)

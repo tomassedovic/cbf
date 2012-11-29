@@ -11,6 +11,7 @@ module CBF
 
   class StringParameter
     def initialize(name, default_value)
+      @name = name
       @default_value = default_value
     end
 

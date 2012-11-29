@@ -27,6 +27,15 @@ module CBF
               params << [resource[:name], key, value]
             end
           end
+          resource[:services].each do |service|
+            service[:parameters].each do |p|
+              case p
+              when StringParameter, PasswordParameter
+                param_key = [service[:name], p.name].join('_')
+                params << [resource[:name], param_key, p]
+              end
+            end
+          end
         end
         params.map { |p| generate_parameter_declaration(*p) }
       end

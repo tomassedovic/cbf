@@ -31,20 +31,31 @@ module CBF
   end
 
   class FileURL
-    def initialize(url)
+    def initialize(url, name=nil, owner='root', group='root', mode='000644')
       @url = url
+      if name
+        @name = name
+      else
+        @name = File.basename(URI.parse(url).path)
+      end
+      @owner = owner
+      @group = group
+      @mode = mode
     end
 
-    attr_reader :url
+    attr_reader :url, :name, :owner, :group, :mode
   end
 
   class FileContents
-    def initialize(name, contents)
+    def initialize(name, contents, owner='root', group='root', mode='000644')
       @name = name
       @contents = contents
+      @owner = owner
+      @group = group
+      @mode = mode
     end
 
-    attr_reader :name, :contents
+    attr_reader :name, :contents, :owner, :group, :mode
   end
 
 

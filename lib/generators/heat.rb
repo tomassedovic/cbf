@@ -64,7 +64,36 @@ module CBF
             'UserData' => '',
           },
         }
+
+        files = resource[:services].map { |s| s[:files]}.flatten.map do |f|
+          generate_file(f)
+        end
+
+        unless files.empty?
+          cfn_init = resource_body['Metadata']['AWS::CloudFormation::Init']
+          cfn_init['config'] ||= {}
+          cfn_init['config']['files'] = Hash[*files.flatten]
+        end
+
         [name, resource_body]
+      end
+
+      def self.generate_file(file)
+        body = {
+          'owner' => file.owner,
+          'group' => file.group,
+          'mode' => file.mode,
+        }
+
+        case file
+        when FileURL
+          body['source'] = file.url
+        when FileContents
+          body['content'] = file.contents
+          body['encoding'] = 'plain'
+        end
+
+        [file.name, body]
       end
 
       def self.reference_link(resource, type)

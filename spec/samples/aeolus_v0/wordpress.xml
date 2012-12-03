@@ -1,7 +1,7 @@
 <deployable name="Wordpress Multi-Instance Deployable">
   <description>This is an example of a multi deployment that deploys wordpress across an apache and mysql instance</description>
   <assemblies>
-    <assembly hwp="small-x86_64" name="apache">
+    <assembly hwp="small-x86_64" name="webserver">
       <image id="APACHE_IMAGE_ID"/>
       <services>
         <service name="http">
@@ -38,7 +38,7 @@
         <return name="ipaddress"/>
       </returns>
     </assembly>
-    <assembly hwp="small-x86_64" name="mysql">
+    <assembly hwp="small-x86_64" name="database">
       <image id="MYSQL_IMAGE_ID"/>
       <services>
         <service name="mysql">

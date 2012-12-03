@@ -78,7 +78,7 @@ module CBF
 
         unless executables.empty?
           user_data = ['!#/bin/bash'] + executables.map { |f| File.join(f.location, f.name) }
-          resource_body['UserData'] = user_data.join("\n")
+          resource_body['Properties']['UserData'] = user_data.join("\n")
         end
 
         [name, resource_body]

@@ -34,9 +34,9 @@ module CBF
         {
           :name => assembly.attr('name'),
           :type => :instance,
-          :hardware_profile => StringParameter.new('hardware_profile', assembly.attr('hwp')),
-          :image => StringParameter.new('image', (assembly % 'image').attr('id')),
-          :keyname => StringParameter.new('keyname', nil),
+          :hardware_profile => StringParameter.new('hardware_profile', '', assembly.attr('hwp')),
+          :image => StringParameter.new('image', '', (assembly % 'image').attr('id')),
+          :keyname => StringParameter.new('keyname', '', nil),
           :services => (assembly / 'services/service').map { |s| parse_service(s) },
           :returns => (assembly / 'returns/return').map { |r| parse_return(r) } ,
         }
@@ -44,13 +44,23 @@ module CBF
 
       def self.parse_service(service)
         service_name = service.attr('name')
+        parameters = (service / 'parameters/parameter').map { |p| parse_parameter(service_name, p) }
         result = {
           :name => service_name,
           :files => (service / 'files/file').map { |f| parse_file(f, service_name) },
-          :parameters => (service / 'parameters/parameter').map { |p| parse_parameter(p) },
+          :parameters => parameters,
         }
         executable = (service % 'executable')
-        result[:executable] = parse_file(executable, service_name) if executable
+        if executable
+          file = parse_file(executable, service_name)
+          parameters.each do |param|
+            file.environment << {
+              :name => "AUDREY_VAR_#{service_name}_#{param.name}",
+              :value => param,
+            }
+          end
+          result[:executable] = file
+        end
 
         result
       end
@@ -66,11 +76,11 @@ module CBF
         end
       end
 
-      def self.parse_parameter(parameter)
+      def self.parse_parameter(service_name, parameter)
         name = parameter.attr('name')
         reference = parameter % 'reference'
         if reference
-          ReferenceParameter.new(name, reference.attr('assembly'),
+          ReferenceParameter.new(name, service_name, reference.attr('assembly'),
             reference.attr('parameter'))
         else
           value_element = parameter % 'value'
@@ -78,14 +88,14 @@ module CBF
             type = value_element.attr('type') || 'scalar'
             case type
             when 'scalar'
-              StringParameter.new(name, value_element.text)
+              StringParameter.new(name, service_name, value_element.text)
             when 'password'
-              PasswordParameter.new(name, value_element.text)
+              PasswordParameter.new(name, service_name, value_element.text)
             else
               raise InvalidParameterType, type
             end
           else
-            StringParameter.new(name, nil)
+            StringParameter.new(name, service_name, nil)
           end
         end
       end

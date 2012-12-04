@@ -12,24 +12,26 @@ module CBF
   class ValidationError < StandardError; end
 
   class StringParameter
-    def initialize(name, default_value)
+    def initialize(name, service_name, default_value)
       @name = name
+      @service_name = service_name
       @default_value = default_value
     end
 
-    attr_reader :name, :default_value
+    attr_reader :name, :service_name, :default_value
   end
 
   class PasswordParameter < StringParameter; end
 
   class ReferenceParameter
-    def initialize(name, resource, parameter)
+    def initialize(name, service_name, resource, parameter)
       @name = name
+      @service_name = service_name
       @resource = resource
       @parameter = parameter
     end
 
-    attr_reader :name, :resource, :parameter
+    attr_reader :name, :service_name, :resource, :parameter
   end
 
   class FileURL
@@ -44,9 +46,11 @@ module CBF
       @owner = owner
       @group = group
       @mode = mode
+      @environment = []
     end
 
     attr_reader :url, :location, :name, :owner, :group, :mode
+    attr_accessor :environment
   end
 
   class FileContents
@@ -57,9 +61,11 @@ module CBF
       @owner = owner
       @group = group
       @mode = mode
+      @environment = []
     end
 
     attr_reader :name, :contents, :location, :owner, :group, :mode
+    attr_accessor :environment
   end
 
 

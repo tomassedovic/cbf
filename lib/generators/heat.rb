@@ -76,10 +76,11 @@ module CBF
           cfn_init['config']['files'] = Hash[*generated_files.flatten]
         end
 
-        unless executables.empty?
-          user_data = ['!#/bin/bash'] + executables.map { |f| File.join(f.location, f.name) }
-          resource_body['Properties']['UserData'] = user_data.join("\n")
-        end
+        # unless executables.empty?
+        #   user_data = ['!#/bin/bash'] + executables.map { |f| File.join(f.location, f.name) }
+        #   resource_body['Properties']['UserData'] = user_data.join("\n")
+        # end
+        resource_body['Properties']['UserData'] = generate_user_data(name, executables)
 
         [name, resource_body]
       end
@@ -102,6 +103,29 @@ module CBF
         [File.join(file.location, file.name), body]
       end
 
+      def self.generate_user_data(resource_name, executables)
+        return '' if executables.empty?
+
+        lines = ['!#/bin/bash'] + executables.map do |f|
+          path = File.join(f.location, f.name)
+          export = f.environment.map do |env|
+            param = env[:value]
+            ref = case param
+            when StringParameter, PasswordParameter
+              { "Ref" => resource_param_name(resource_name, "#{param.service_name}_#{param.name}") }
+            when ReferenceParameter
+              attribute_name = OUTPUTS_MAP[param.parameter]
+              { "Fn::GetAtt" => [param.resource, attribute_name || param.parameter] }
+            end
+            { "Fn::Join" => ["", ["export #{env[:name]}=", ref]]}
+          end
+          unexport = f.environment.map { |env| "unset #{env[:name]}" }
+          [export, path, unexport]
+        end
+
+        { "Fn::Base64" => { "Fn::Join" => ["\n", lines.flatten] }}
+      end
+
       def self.reference_link(resource, type)
         value = resource[type]
         name = resource[:name]
@@ -113,12 +137,17 @@ module CBF
         end
       end
 
-      def self.resource_param_name(name, type)
-        "#{name}_#{type}"
+      def self.resource_param_name(resource_name, param_name)
+        "#{resource_name}_#{param_name}"
       end
 
       RESOURE_TYPE_MAP = {
         :instance => 'AWS::EC2::Instance'
+      }
+
+      OUTPUTS_MAP = {
+        'ipaddress' => 'PublicIp',
+        'hostname' => 'DNSName',
       }
 
     end

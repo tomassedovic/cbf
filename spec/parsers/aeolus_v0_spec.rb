@@ -24,6 +24,12 @@ describe 'Aeolus v.0 parser' do
   it "must fail for invalid XML" do
     proc do
       CBF.parse(:aeolus_v0, '<deployable')
-    end.must_raise Nokogiri::XML::SyntaxError
+    end.must_raise CBF::SyntaxError
+  end
+
+  it "must fail for invalid Deployable format" do
+    proc do
+      CBF.parse(:aeolus_v0, '<deployable></deployable>')
+    end.must_raise CBF::ValidationError
   end
 end

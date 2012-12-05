@@ -73,14 +73,14 @@
       <services>
         <service name="service3">
           <executable>
-            <contents name="bootstrap.sh"><![CDATA[#!/bin/bash
+            <contents><![CDATA[#!/bin/bash
 echo hello, world!
 ]]></contents>
           </executable>
           <files>
             <file url="http://example.com/file" />
             <file>
-              <contents name="thingy.conf"><![CDATA[name: hello]]></contents>
+              <contents filename="thingy.conf"><![CDATA[name: hello]]></contents>
             </file>
           </files>
           <parameters>

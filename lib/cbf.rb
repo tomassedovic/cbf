@@ -7,7 +7,9 @@ require 'generators/heat'
 
 module CBF
 
-  class InvalidFormat < StandardError; end
+  class UnknownFormatError < StandardError; end
+  class SyntaxError < StandardError; end
+  class ValidationError < StandardError; end
 
   class StringParameter
     def initialize(name, default_value)
@@ -83,7 +85,7 @@ module CBF
     if PARSERS.include? format
       PARSERS[format]
     else
-      raise InvalidFormat, format
+      raise UnknownFormatError, format
     end
   end
 
@@ -91,7 +93,7 @@ module CBF
     if GENERATORS.include? format
       GENERATORS[format]
     else
-      raise InvalidFormat, format
+      raise UnknownFormatError, format
     end
   end
 

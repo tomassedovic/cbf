@@ -8,10 +8,12 @@ module CBF
       class InvalidParameterType < StandardError; end
 
       def self.parse(input_data, options)
-        validate!(input_data)
-        doc = Nokogiri::XML(input_data) do |config|
-          config.strict.nonet
+        begin
+          doc = Nokogiri::XML(input_data) { |config| config.strict.nonet }
+        rescue Nokogiri::XML::SyntaxError
+          raise SyntaxError
         end
+        validate!(doc)
         {
           :name => doc.root.attr('name'),
           :description => (doc % 'description').text,
@@ -19,8 +21,11 @@ module CBF
         }
       end
 
-      def self.validate!(input_data)
-        # TODO: add the validation here, raise exceptions on invalid input
+      def self.validate!(doc)
+        schema_path = File.join(File.dirname(__FILE__), 'aeolus_v0.rng.xml')
+        schema = Nokogiri::XML::RelaxNG(open(schema_path))
+        errors = schema.validate(doc) || []
+        raise ValidationError unless errors.empty?
       end
 
       private

@@ -11,63 +11,6 @@ module CBF
   class SyntaxError < StandardError; end
   class ValidationError < StandardError; end
 
-  class StringParameter
-    def initialize(name, service_name, default_value)
-      @name = name
-      @service_name = service_name
-      @default_value = default_value
-    end
-
-    attr_reader :name, :service_name, :default_value
-  end
-
-  class PasswordParameter < StringParameter; end
-
-  class ReferenceParameter
-    def initialize(name, service_name, resource, parameter)
-      @name = name
-      @service_name = service_name
-      @resource = resource
-      @parameter = parameter
-    end
-
-    attr_reader :name, :service_name, :resource, :parameter
-  end
-
-  class FileURL
-    def initialize(url, location, name=nil, owner='root', group='root', mode='000644')
-      @url = url
-      if name
-        @name = name
-      else
-        @name = File.basename(URI.parse(url).path)
-      end
-      @location = location
-      @owner = owner
-      @group = group
-      @mode = mode
-      @environment = []
-    end
-
-    attr_reader :url, :location, :name, :owner, :group, :mode
-    attr_accessor :environment
-  end
-
-  class FileContents
-    def initialize(name, contents, location, owner='root', group='root', mode='000644')
-      @name = name
-      @contents = contents
-      @location = location
-      @owner = owner
-      @group = group
-      @mode = mode
-      @environment = []
-    end
-
-    attr_reader :name, :contents, :location, :owner, :group, :mode
-    attr_accessor :environment
-  end
-
 
   PARSERS = {
       :aeolus => Parsers::AeolusV0,

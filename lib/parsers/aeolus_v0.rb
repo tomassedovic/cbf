@@ -97,14 +97,14 @@ module CBF
           end
 
           if file.name == 'executable'
-            result[:mode] = '000755',
+            result[:mode] = '000755'
             env_params = parameters.select do |p|
               p[:resource] == assembly_name && p[:service] == service_name
             end
-            result[:environment] = env_params.map do |param|
+            result[:environment] = env_params.map do |p|
               {
-                :name => "AUDREY_VAR_#{service_name}_#{param[:name]}",
-                :value => param,
+                :name => "AUDREY_VAR_#{service_name}_#{p[:name]}",
+                :value => {:parameter =>  p[:name]},
               }
             end
           end

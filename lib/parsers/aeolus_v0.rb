@@ -84,6 +84,7 @@ module CBF
             :owner => nil,
             :group => nil,
             :mode => '000644',
+            :executable => false,
           }
 
           url = file['url']
@@ -98,6 +99,7 @@ module CBF
 
           if file.name == 'executable'
             result[:mode] = '000755'
+            result[:executable] = true
             env_params = parameters.select do |p|
               p[:resource] == assembly_name && p[:service] == service_name
             end

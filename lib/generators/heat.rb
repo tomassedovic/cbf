@@ -5,8 +5,8 @@ module CBF
 
     class Heat
       def self.generate(template)
-        parameters = self.generate_params(template)
-        resources = template[:resources].map { |r| generate_resource(r)}
+        parameters = self.generate_params(template[:parameters])
+        resources = template[:resources].map { |r| generate_resource(template, r)}
         JSON.pretty_generate({
           'AWSTemplateFormatVersion' => '2010-09-09',
           'Description' => template[:description],
@@ -18,57 +18,38 @@ module CBF
 
       private
 
-      def self.generate_params(template)
-        params = []
-        template[:resources].each do |resource|
-          resource.each do |key, value|
-            case value
-            when StringParameter
-              params << [resource[:name], key, value]
-            end
-          end
-          resource[:services].each do |service|
-            service[:parameters].each do |p|
-              case p
-              when StringParameter, PasswordParameter
-                param_key = [service[:name], p.name].join('_')
-                params << [resource[:name], param_key, p]
-              end
-            end
-          end
+      def self.generate_params(parameters)
+        non_reference_params = parameters.reject { |p| p[:type] == :reference }
+        non_reference_params.map do |p|
+          definition = {
+            'Type' => PARAMETER_TYPE_MAP[p[:type]],
+          }
+          definition['Default'] = p[:default] if p[:default]
+          definition['NoEcho'] = p[:sensitive] if p[:sensitive]
+
+          [parameter_name(p), definition]
         end
-        params.map { |p| generate_parameter_declaration(*p) }
       end
 
-      def self.generate_parameter_declaration(resource_name, param_name, param)
-        definition = {}
-
-        definition['Default'] = param.default_value if param.default_value
-
-        case param
-        when StringParameter
-          definition['Type'] = 'String'
-        end
-        [resource_param_name(resource_name, param_name), definition]
+      def self.parameter_name(parameter)
+        [parameter[:resource], parameter[:service], parameter[:name]].compact.join('_')
       end
 
-      def self.generate_resource(resource)
+
+      def self.generate_resource(template, resource)
         name = resource[:name]
         resource_body = {
           'Type' => RESOURE_TYPE_MAP[resource[:type]],
           'Metadata' => { "AWS::CloudFormation::Init" => {} },
           'Properties' => {
-            'ImageId' => reference_link(resource, :image),
-            'InstanceType' => reference_link(resource, :hardware_profile),
-            'KeyName' => reference_link(resource, :keyname),
+            'ImageId' => resolve_parameter_ref_or_value(name, resource[:image]),
+            'InstanceType' => resolve_parameter_ref_or_value(name, resource[:hardware_profile]),
             'UserData' => '',
           },
         }
 
-
-        files = resource[:services].map { |s| s[:files] }.flatten
-        executables = resource[:services].map { |s| s[:executable] }.compact
-        generated_files = (files + executables).map { |f| generate_file(f) }
+        files = template[:files].select { |f| f[:resource] == name }
+        generated_files = files.map { |f| generate_file(f) }
 
         unless files.empty?
           cfn_init = resource_body['Metadata']['AWS::CloudFormation::Init']
@@ -76,70 +57,75 @@ module CBF
           cfn_init['config']['files'] = Hash[*generated_files.flatten]
         end
 
-        # unless executables.empty?
-        #   user_data = ['!#/bin/bash'] + executables.map { |f| File.join(f.location, f.name) }
-        #   resource_body['Properties']['UserData'] = user_data.join("\n")
-        # end
-        resource_body['Properties']['UserData'] = generate_user_data(name, executables)
+        executables = files.select { |f| f[:executable] }
+        resource_body['Properties']['UserData'] = generate_user_data(name, executables, template[:parameters])
 
         [name, resource_body]
       end
 
+      def self.resolve_parameter_ref_or_value(resource_name, value)
+        case value
+        when String
+          value
+        when Hash
+          name = parameter_name({:name => value[:parameter], :resource => resource_name})
+          { "Ref" => name }
+        end
+      end
+
       def self.generate_file(file)
         body = {
-          'owner' => file.owner,
-          'group' => file.group,
-          'mode' => file.mode,
+          'owner' => file[:owner],
+          'group' => file[:group],
+          'mode' => file[:mode],
         }
 
-        case file
-        when FileURL
-          body['source'] = file.url
-        when FileContents
-          body['content'] = file.contents
+        if file[:url]
+          body['source'] = file[:url]
+        else
+          body['content'] = file[:contents]
           body['encoding'] = 'plain'
         end
 
-        [File.join(file.location, file.name), body]
+        [file_abs_path(file), body.reject { |k, v| v.nil? } ]
       end
 
-      def self.generate_user_data(resource_name, executables)
+      def self.file_abs_path(file)
+        File.join(file[:location], file[:name])
+      end
+
+      def self.generate_user_data(resource_name, executables, params)
         return '' if executables.empty?
 
         lines = ['!#/bin/bash'] + executables.map do |f|
-          path = File.join(f.location, f.name)
-          export = f.environment.map do |env|
-            param = env[:value]
-            ref = case param
-            when StringParameter, PasswordParameter
-              { "Ref" => resource_param_name(resource_name, "#{param.service_name}_#{param.name}") }
-            when ReferenceParameter
-              attribute_name = OUTPUTS_MAP[param.parameter]
-              { "Fn::GetAtt" => [param.resource, attribute_name || param.parameter] }
+          export_commands = f[:environment].map do |env|
+            param = params.find do |p|
+              p[:resource] == resource_name && p[:name] == env[:value][:parameter]
+            end
+
+            ref = case param[:type]
+            when :string, :password
+              { "Ref" => parameter_name(param) }
+            when :reference
+              output_name = param[:referenced_output][:name]
+              attribute_name = OUTPUTS_MAP[output_name] || output_name
+              { "Fn::GetAtt" => [param[:referenced_output][:resource], attribute_name] }
             end
             { "Fn::Join" => ["", ["export #{env[:name]}=", ref]]}
           end
-          unexport = f.environment.map { |env| "unset #{env[:name]}" }
-          [export, path, unexport]
+          unexport_commands = f[:environment].map { |env| "unset #{env[:name]}" }
+
+          [export_commands, file_abs_path(f), unexport_commands]
         end
 
         { "Fn::Base64" => { "Fn::Join" => ["\n", lines.flatten] }}
       end
 
-      def self.reference_link(resource, type)
-        value = resource[type]
-        name = resource[:name]
-        case value
-        when String
-          value
-        when StringParameter
-          { 'Ref' => resource_param_name(name, type) }
-        end
-      end
 
-      def self.resource_param_name(resource_name, param_name)
-        "#{resource_name}_#{param_name}"
-      end
+      PARAMETER_TYPE_MAP = {
+        :string => 'String',
+        :password => 'String',
+      }
 
       RESOURE_TYPE_MAP = {
         :instance => 'AWS::EC2::Instance'

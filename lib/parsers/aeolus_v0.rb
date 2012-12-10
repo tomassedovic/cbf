@@ -14,7 +14,7 @@ module CBF
           validate!(doc)
 
           assemblies = (doc / 'assemblies/assembly').map { |a| parse_assembly(a)}
-          assembly_params = assemblies.map { |a| [a[:hardware_profile], a[:image], a[:keyname]] }.flatten
+          assembly_params = (doc / 'assemblies/assembly').map { |a| parse_assembly_parameters(a) }.flatten
           resource_params = (doc / 'parameters/parameter').map { |el| parse_parameter(el) }
           {
             :name => doc.root.attr('name'),
@@ -41,18 +41,24 @@ module CBF
           {
             :name => name,
             :type => :instance,
-            :hardware_profile => assembly_parameter('hardware_profile', name, assembly['hwp']),
-            :image => assembly_parameter('image', name, (assembly % 'image')['id']),
-            :keyname => assembly_parameter('keyname', name, nil),
+            :hardware_profile => {:parameter => 'hardware_profile'},
+            :image => {:parameter => 'image'},
           }
         end
 
-        def assembly_parameter(name, assembly, default_value)
+        def parse_assembly_parameters(assembly)
+          [
+            assembly_parameter('image', assembly['name'], (assembly % 'image')['id']),
+            assembly_parameter('hardware_profile', assembly['name'], assembly['hwp']),
+          ]
+        end
+
+        def assembly_parameter(name, assembly_name, default_value)
           result = {
             :type => :string,
             :name => name,
             :service => nil,
-            :resource => assembly,
+            :resource => assembly_name,
 
           }
           result[:default] = default_value if default_value

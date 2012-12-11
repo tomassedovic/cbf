@@ -1,3 +1,6 @@
+# Copyright 2012 Red Hat, Inc.
+# Licensed under the Apache License, Version 2.0, see README for details.
+
 require 'json'
 
 module CBF

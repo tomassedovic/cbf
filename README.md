@@ -22,6 +22,28 @@ Convert from the Aeolus Deployable XML format to Amazon CloudFormation:
 
 
 
+How it works
+------------
+
+When CBF reads an input format, it converts its contents into an internal representation that contains all the information and is the same for all the formats.
+
+The generator for the output format receives this internal structure and converts it to the desired output.
+
+If you want to add supports for new formats, you will need work with this internal resource format.
+
+The specification is here:
+
+<https://github.com/tomassedovic/cbf/wiki/Internal-resource-format>
+
+
+Short-term Roadmap
+------------------
+
+* Fully document the internal resource format
+* Add more extensive tests
+* Publish to Rubygems
+
+
 License
 -------
 

@@ -1,9 +1,6 @@
 require 'parsers/aeolus_v0'
 require 'generators/heat'
 
-# converter_paths = File.join(File.dirname(__FILE__), 'converters', '*.rb')
-# Dir.glob(converter_paths).each { |file| require file}
-
 
 module CBF
 

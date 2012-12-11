@@ -5,7 +5,7 @@ require 'nokogiri'
 
 module CBF
   module Parsers
-    class AeolusV0
+    class AeolusV1
       class << self
 
         def parse(input_data, options)
@@ -33,7 +33,7 @@ module CBF
         private
 
         def validate!(doc)
-          schema_path = File.join(File.dirname(__FILE__), 'aeolus_v0.rng.xml')
+          schema_path = File.join(File.dirname(__FILE__), 'aeolus_v1.rng.xml')
           schema = Nokogiri::XML::RelaxNG(open(schema_path))
           errors = schema.validate(doc) || []
           raise ValidationError unless errors.empty?

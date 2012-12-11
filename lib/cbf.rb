@@ -1,7 +1,7 @@
 # Copyright 2012 Red Hat, Inc.
 # Licensed under the Apache License, Version 2.0, see README for details.
 
-require 'parsers/aeolus_v0'
+require 'parsers/aeolus_v1'
 require 'generators/heat'
 
 
@@ -13,8 +13,8 @@ module CBF
 
 
   PARSERS = {
-      :aeolus => Parsers::AeolusV0,
-      :aeolus_v0 => Parsers::AeolusV0,
+      :aeolus => Parsers::AeolusV1,
+      :aeolus_v1 => Parsers::AeolusV1,
     }
 
   GENERATORS = {

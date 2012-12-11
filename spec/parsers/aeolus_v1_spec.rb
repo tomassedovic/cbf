@@ -4,14 +4,14 @@
 require 'spec_helper'
 require 'cbf'
 
-describe 'Aeolus v.0 parser' do
-  it "must advertise the Aeolus v.0 format" do
-    CBF.parsers.must_include :aeolus_v0
+describe 'Aeolus deployable version 1 parser' do
+  it "must advertise the Aeolus version 1 format" do
+    CBF.parsers.must_include :aeolus_v1
   end
 
   it "must successfully parse the wordpress deployable" do
-    deployable_path = "#{SAMPLES_PATH}/aeolus_v0/wordpress.xml"
-    result = CBF.parse(:aeolus_v0, open(deployable_path))
+    deployable_path = "#{SAMPLES_PATH}/aeolus_v1/wordpress.xml"
+    result = CBF.parse(:aeolus_v1, open(deployable_path))
     result[:name].must_equal "Wordpress Multi-Instance Deployable"
     result[:description].must_equal "This is an example of a multi deployment that deploys wordpress across an apache and mysql instance"
 
@@ -40,24 +40,24 @@ describe 'Aeolus v.0 parser' do
   end
 
   it "must successfully parse the drupal deployable" do
-    deployable_path = "#{SAMPLES_PATH}/aeolus_v0/drupal.xml"
-    CBF.parse(:aeolus_v0, open(deployable_path))
+    deployable_path = "#{SAMPLES_PATH}/aeolus_v1/drupal.xml"
+    CBF.parse(:aeolus_v1, open(deployable_path))
   end
 
   it "must successfully parse the sample deployable" do
-    deployable_path = "#{SAMPLES_PATH}/aeolus_v0/sample.xml"
-    CBF.parse(:aeolus_v0, open(deployable_path))
+    deployable_path = "#{SAMPLES_PATH}/aeolus_v1/sample.xml"
+    CBF.parse(:aeolus_v1, open(deployable_path))
   end
 
   it "must fail for invalid XML" do
     proc do
-      CBF.parse(:aeolus_v0, '<deployable')
+      CBF.parse(:aeolus_v1, '<deployable')
     end.must_raise CBF::SyntaxError
   end
 
   it "must fail for invalid Deployable format" do
     proc do
-      CBF.parse(:aeolus_v0, '<deployable></deployable>')
+      CBF.parse(:aeolus_v1, '<deployable></deployable>')
     end.must_raise CBF::ValidationError
   end
 end

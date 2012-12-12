@@ -8,10 +8,10 @@ require 'generators/heat'
 
 module CBF
 
-  class UnknownFormatError < StandardError; end
-  class SyntaxError < StandardError; end
-  class ValidationError < StandardError; end
-
+  def self.convert(template, format)
+    template = parse(format, template)
+    Convertor.new(template)
+  end
 
   PARSERS = {
       :aeolus => Parsers::AeolusV1,
@@ -53,6 +53,24 @@ module CBF
 
   def self.generate(format, template)
     get_generator(format).generate(template)
+  end
+
+
+  class UnknownFormatError < StandardError; end
+  class SyntaxError < StandardError; end
+  class ValidationError < StandardError; end
+
+
+  class Convertor
+    attr_reader :template
+
+    def initialize(template)
+      @template = template
+    end
+
+    def to(format)
+      CBF.generate(format, @template)
+    end
   end
 
 end

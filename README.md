@@ -3,6 +3,23 @@ CBF (Cloud Babel Fish)
 
 A library for converting various cloud deployment formats.
 
+
+Installation
+------------
+
+Add this line to your application's Gemfile:
+
+    gem 'cbf'
+
+And then execute:
+
+    $ bundle
+
+Or install it yourself as:
+
+    $ gem install cbf
+
+
 Usage
 -----
 
@@ -11,14 +28,25 @@ Usage
 List all the supported input formats:
 
     CBF.parsers
+    => [:aeolus, :aeolus_v1]
 
 List all the suported output formats:
 
     CBF.generators
+    => [:heat, :cloud_formation]
 
 Convert from the Aeolus Deployable XML format to Amazon CloudFormation:
 
-    CBF.generate(:cloud_formation, CBF.parse(:aeolus, open("wordpress.xml")))
+    puts CBF.convert(open("wordpress.xml"), :aeolus).to(:cloud_formation)
+    {
+      "AWSTemplateFormatVersion": "2010-09-09",
+      "Description": "This is an example of a multi deployment that deploys wordpress across an apache and mysql instance",
+      "Parameters": {
+        "webserver_image": {
+          "Type": "String",
+    ...
+
+    }
 
 
 

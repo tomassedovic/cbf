@@ -10,6 +10,7 @@ describe 'Heat generator' do
       :description => 'sample template',
       :parameters => [],
       :resources => [],
+      :files => [],
     }
 
     template = CBF.generate(:heat, source)
@@ -20,5 +21,28 @@ describe 'Heat generator' do
     parsed.must_include 'Parameters'
     parsed.must_include 'Resources'
     parsed.must_include 'Outputs'
+  end
+
+  it "must specify required properties for instance resources" do
+    source = {
+      :description => 'sample template',
+      :parameters => [],
+      :resources => [{
+        :name => 'my instance',
+        :type => :instance,
+        :image => 'test-image-id',
+        :hardware_profile => 'test-hwp'
+      }],
+      :files => [],
+    }
+
+    t = JSON.parse(CBF.generate(:heat, source))
+    t['Resources'].must_include 'my instance'
+    t['Resources']['my instance'].must_include 'Properties'
+    properties = t['Resources']['my instance']['Properties']
+    properties.must_include 'ImageId'
+    properties['ImageId'].must_equal 'test-image-id'
+    properties.must_include 'InstanceType'
+    properties['InstanceType'].must_equal 'test-hwp'
   end
 end

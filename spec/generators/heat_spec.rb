@@ -31,7 +31,7 @@ describe 'Heat generator' do
         :name => 'my instance',
         :type => :instance,
         :image => 'test-image-id',
-        :hardware_profile => 'test-hwp'
+        :hardware_profile => 'test-hwp',
       }],
       :files => [],
     }
@@ -44,5 +44,26 @@ describe 'Heat generator' do
     properties['ImageId'].must_equal 'test-image-id'
     properties.must_include 'InstanceType'
     properties['InstanceType'].must_equal 'test-hwp'
+  end
+
+  it "must generate KeyName for instances when specified" do
+    source = {
+      :description => 'sample template',
+      :parameters => [],
+      :resources => [{
+        :name => 'my instance',
+        :type => :instance,
+        :image => 'test-image-id',
+        :hardware_profile => 'test-hwp',
+        :key_name => 'my-key'
+      }],
+      :files => [],
+    }
+
+    t = JSON.parse(CBF.generate(:heat, source))
+
+    properties = t['Resources']['my instance']['Properties']
+    properties.must_include 'KeyName'
+    properties['KeyName'].must_equal 'my-key'
   end
 end

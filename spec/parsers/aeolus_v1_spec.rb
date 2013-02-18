@@ -60,4 +60,20 @@ describe 'Aeolus deployable version 1 parser' do
       CBF.parse(:aeolus_v1, '<deployable></deployable>')
     end.must_raise CBF::ValidationError
   end
+
+  it "must generate keyname parameters when asked to" do
+    deployable_path = "#{SAMPLES_PATH}/aeolus_v1/wordpress.xml"
+    result = CBF.parse(:aeolus_v1, open(deployable_path), {:require_instance_keys => true})
+
+    result[:parameters].must_include({:type => :string,
+      :name => 'key_name',:service => nil, :resource => 'webserver'})
+    result[:parameters].must_include({:type => :string,
+      :name => 'key_name', :service => nil, :resource => 'database'})
+
+    result[:resources][0].must_include :key_name
+    result[:resources][0][:key_name].must_equal({:parameter => 'key_name'})
+
+    result[:resources][1].must_include :key_name
+    result[:resources][1][:key_name].must_equal({:parameter => 'key_name'})
+  end
 end

@@ -52,6 +52,10 @@ module CBF
             },
           }
 
+          if resource.include? :key_name
+            resource_body['Properties']['KeyName'] = resolve_parameter_ref_or_value(name, resource[:key_name])
+          end
+
           files = template[:files].select { |f| f[:resource] == name }
           generated_files = files.map { |f| generate_file(f) }
 

@@ -16,15 +16,15 @@ module CBF
           end
           validate!(doc)
 
-          assemblies = (doc / 'assemblies/assembly').map { |a| parse_assembly(a)}
-          assembly_params = (doc / 'assemblies/assembly').map { |a| parse_assembly_parameters(a) }.flatten
+          assemblies = (doc / 'assemblies/assembly').map { |a| parse_assembly(a, options)}
+          assembly_params = (doc / 'assemblies/assembly').map { |a| parse_assembly_parameters(a, options) }.flatten
           resource_params = (doc / 'parameters/parameter').map { |el| parse_parameter(el) }
           {
             :name => doc.root.attr('name'),
             :description => (doc % 'description').text,
             :resources => assemblies,
             :services => (doc / 'services/service').map { |el| parse_service(el) },
-            :parameters => assembly_params +  resource_params,
+            :parameters => assembly_params + resource_params,
             :files => (doc / '//executable|//files/file').map { |el| parse_file(el, resource_params) },
             :outputs => (doc / 'assembly//return').map { |el| parse_return(el) },
           }
@@ -39,21 +39,29 @@ module CBF
           raise ValidationError unless errors.empty?
         end
 
-        def parse_assembly(assembly)
+        def parse_assembly(assembly, opts)
           name = assembly['name']
-          {
+          result = {
             :name => name,
             :type => :instance,
             :hardware_profile => {:parameter => 'hardware_profile'},
             :image => {:parameter => 'image'},
           }
+          if opts[:require_instance_keys]
+            result[:key_name] = {:parameter => 'key_name'}
+          end
+          return result
         end
 
-        def parse_assembly_parameters(assembly)
-          [
+        def parse_assembly_parameters(assembly, opts)
+          params = [
             assembly_parameter('image', assembly['name'], (assembly % 'image')['id']),
             assembly_parameter('hardware_profile', assembly['name'], assembly['hwp']),
           ]
+          if opts[:require_instance_keys]
+            params << assembly_parameter('key_name', assembly['name'], nil)
+          end
+          return params
         end
 
         def assembly_parameter(name, assembly_name, default_value)

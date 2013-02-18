@@ -13,7 +13,7 @@ Gem::Specification.new do |s|
   s.homepage      = "https://github.com/tomassedovic/cbf"
   s.license       = 'Apache License, Version 2.0'
 
-  s.add_runtime_dependency "nokogiri", "~> 1.5.5"
+  s.add_runtime_dependency "nokogiri", "~> 1.5.0"
 
   s.add_development_dependency "rake", "~> 10.0.2"
 

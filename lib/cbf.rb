@@ -8,8 +8,8 @@ require 'generators/heat'
 
 module CBF
 
-  def self.convert(template, format)
-    template = parse(format, template)
+  def self.convert(template, format, options={})
+    template = parse(format, template, options)
     Convertor.new(template)
   end
 

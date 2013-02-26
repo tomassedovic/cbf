@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    cbf (0.0.2)
+    cbf (0.0.3)
       nokogiri (~> 1.5.0)
 
 GEM

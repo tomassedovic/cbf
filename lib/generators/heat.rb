@@ -99,7 +99,11 @@ module CBF
         end
 
         def file_abs_path(file)
-          File.join(file[:location], file[:name])
+          name = file[:name]
+          if name.nil? || name.empty?
+            name = file[:resource].split.join('-') + '-file'
+          end
+          File.join(file[:location], name)
         end
 
         def generate_user_data(resource_name, executables, params)
